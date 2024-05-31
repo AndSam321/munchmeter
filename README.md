@@ -9,7 +9,7 @@ Understand the calorie content, macronutrients (proteins, fats, carbohydrates), 
 2. Track your daily calorie intake with the tracking system.
 Set your daily calorie goals and monitor your progress throughout the day.
 
-3. Utilize the power of PyTorch and fine-tuned models to predict and recognize food items from images.
+3. Utilizes PyTorch and fine-tuned models to predict and recognize food items from images.
 Simply upload a picture of your meal, and Munch Meter will identify the food and provide its nutritional facts.
 
 
