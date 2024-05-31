@@ -1,0 +1,21 @@
+{% extends 'events/base.html' %}
+{% load static %}
+{% block content %}
+
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-8 text-center">
+            <h1 class="mt-5">Confirm Deletion</h1>
+            <form method="POST">
+                {% csrf_token %}
+                <div class="form-group">
+                    <p>Are you sure you want to delete "{{ food_item.name }}"?</p>
+                </div>
+                <button class="btn btn-danger" type="submit">Delete</button>
+                <a href="{% url 'track_calories' %}" class="btn btn-secondary">Cancel</a>
+            </form>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

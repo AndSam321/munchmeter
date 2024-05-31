@@ -1,0 +1,214 @@
+{% extends 'events/base.html' %}
+{% load static %}
+{% block content %}
+
+<head>
+  <meta charset="UTF-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link
+    href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.0-beta1/dist/css/bootstrap.min.css"
+    rel="stylesheet"
+    integrity="sha384-0evHe/X+R7YkIZDRvuzKMRqM+OrBnVFBL6DOitfPri4tjfHxaWutUpFmBp4vmVor"
+    crossorigin="anonymous"
+  />
+  <link href="{% static 'style.css' %}" rel="stylesheet" type="text/css" />
+  <title>Munch Meter</title>
+</head>
+<div class="container">
+  <div class="row justify-content-center">
+    <div class="col-md-8 text-center">
+      <h1 class="mt-5">Track Your Calories</h1>
+      <form method="POST">
+        {% csrf_token %}
+        <div class="input-group input-group-lg mb-3">
+          <input
+            type="text"
+            name="query"
+            class="form-control"
+            placeholder="Search for your foods"
+            required
+          />
+        </div>
+        <div class="input-group input-group-lg mb-3">
+          <select id="mealTypeSelect" name="meal_type" class="form-control" required>
+            <option value="" disabled selected>Select meal type</option>
+            <option value="breakfast">Breakfast</option>
+            <option value="lunch">Lunch</option>
+            <option value="dinner">Dinner</option>
+          </select>
+        </div>
+        <button class="btn btn-primary mb-3" type="submit">
+          Track Calories
+        </button>
+        <div class="mb-3">
+          <label for="file" class="form-label custom-file-label">Or take a picture to track</label>
+          <input
+            type="file"
+            id="imageInput"
+            name="imageInput"
+            accept="image/*"
+            class="form-control"
+            disabled
+          />
+        </div>
+      </form>
+      {% if api %}
+      <h2 class="mt-3">
+        {{ api.0.name | capfirst }} has a total of
+        <strong>{{ api.0.calories }} Calories</strong>
+      </h2>
+      {% elif error %}
+      <div class="alert alert-warning mt-3">{{ error }}</div>
+      {% endif %} 
+      {% for food_item in food_list %}
+      <div>
+        <p>{{ food_item.name }} - {{ food_item.calories }}</p>
+        <form
+          method="POST"
+          action="{% url 'delete_food_confirm' food_item.id %}"
+        >
+          {% csrf_token %}
+          <button class="btn btn-danger" type="submit">Delete</button>
+        </form>
+      </div>
+      {% endfor %}
+
+      <img src="#" id="preview" alt="img" class="mt-3" />
+      <h2 id="result"></h2>
+
+      <h2 class="mt-5">Your Daily Intake</h2>
+      {% for entry_date, meals in entries_by_date.items %}
+      <h3>{{ entry_date }}</h3>
+      <ul class="list-group mb-3">
+        <li class="list-group-item active">Breakfast</li>
+        {% for entry in meals.breakfast %}
+        <li class="list-group-item">
+          {{ entry.food.name }} - {{ entry.food.calories }} Calories, {{entry.food.carbs }}g Carbs, {{ entry.food.protein }}g Protein
+        </li>
+        {% endfor %}
+        <li class="list-group-item active">Lunch</li>
+        {% for entry in meals.lunch %}
+        <li class="list-group-item">
+          {{ entry.food.name }} - {{ entry.food.calories }} Calories, {{ entry.food.carbs }}g Carbs, {{ entry.food.protein }}g Protein
+        </li>
+        {% endfor %}
+        <li class="list-group-item active">Dinner</li>
+        {% for entry in meals.dinner %}
+        <li class="list-group-item">
+          {{ entry.food.name }} - {{ entry.food.calories }} Calories, {{ entry.food.carbs }}g Carbs, {{ entry.food.protein }}g Protein
+        </li>
+        {% endfor %}
+      </ul>
+      <p><strong>Daily Total Calories:</strong> {{ meals.total_calories }}</p>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+
+
+<script>
+  const url = 'https://api-inference.huggingface.co/models/andsam321/food';
+  let token;
+
+  document.getElementById("preview").style.display = "none";
+
+  fetch("{% static 'config.json' %}")
+    .then(response => response.json())
+    .then(config => {
+      token = config.token;
+      console.log("Token loaded:", token);
+    });
+
+  const mealTypeSelect = document.getElementById('mealTypeSelect');
+  const imageInput = document.getElementById('imageInput');
+
+  mealTypeSelect.addEventListener('change', function() {
+    if (mealTypeSelect.value) {
+      imageInput.disabled = false;
+    } else {
+      imageInput.disabled = true;
+    }
+  });
+
+  imageInput.addEventListener("change", function(event) {
+    const file = event.target.files[0];
+    const reader = new FileReader();
+
+    reader.addEventListener("load", () => {
+      document.getElementById("preview").setAttribute("src", reader.result);
+      document.getElementById("preview").style.display = 'block';
+    });
+
+    reader.readAsDataURL(file);
+
+    reader.onloadend = () => {
+      const data = {
+        inputs: {
+          image: reader.result.split(',')[1]
+        }
+      };
+      console.log("Image data prepared:", data);
+
+      fetch(url, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(data)
+      })
+      .then(response => response.json())
+      .then(data => {
+        console.log("API response:", data);
+        let max = 0;
+        let res = '';
+        for (let i = 0; i < data.length; i++) {
+          if (data[i].score > max) {
+            max = data[i].score;
+            res = data[i].label;
+          }
+        }
+        console.log("Detected food item:", res);
+        document.getElementById("result").innerText = res;
+
+        const mealType = mealTypeSelect.value;
+        
+        if (mealType) {
+          fetch("{% url 'add_food_item' %}", {
+            method: "POST",
+            headers: {
+              'Content-Type': 'application/json',
+              'X-CSRFToken': '{{ csrf_token }}'
+            },
+            body: JSON.stringify({
+              food_item: res,
+              meal_type: mealType
+            })
+          })
+          .then(response => {
+            if (response.ok) {
+              return response.json();
+            }
+            throw new Error('Network response was not ok.');
+          })
+          .then(data => {
+            console.log("Food item added to tracking:", data);
+            // Optionally update the UI with the new food item
+          })
+          .catch((e) => {
+            console.error("Error adding food item:", e);
+          });
+        } else {
+          console.error("Meal type not selected");
+        }
+      })
+      .catch((e) => {
+        console.log("Error:", e);
+      });
+    };
+  });
+</script>
+
+  
+{% endblock %}

@@ -1,0 +1,93 @@
+
+body {
+    background-color: #f6fbf4;
+  }
+  
+  .logo {
+    width: 13em;
+    height: auto;
+  }
+  
+  h1 {
+    font-weight: 300;
+  }
+  
+  h1 strong {
+    font-weight: 600;
+    color: #4b8673;
+  }
+  
+  .inputstyle {
+    padding: 20px !important;
+  }
+  
+  .whoop {
+    background-color: #5fd068;
+    width: 8em;
+    font-size: 30px !important;
+    color: #ffffff;
+  }
+  
+  .caloriescont {
+    background-color: #ffffff;
+    padding: 30px;
+  }
+  
+  .caloriescont ul {
+    padding: 0px;
+  }
+  
+  .caloriescont ul li {
+    list-style: none;
+    margin-bottom: 20px;
+    border-bottom: 1px solid #efefef;
+    width: 80%;
+  }
+  
+  .caloriescont h3 {
+    color: #4b8673;
+    font-size: 2em;
+    text-transform: capitalize;
+    font-weight: 700;
+  }
+  
+  .caloriescont h5 {
+    color: #4b8673;
+  }
+  
+  .servingsize {
+    background-color: #000000;
+    padding: 10px;
+    color: #ffffff;
+  }
+
+  .delete-button {
+    background-color: #dc3545; /* Red background color */
+    color: #fff; /* White text color */
+    border: none; /* Remove border */
+    padding: 5px 10px; /* Add padding */
+    cursor: pointer; /* Change cursor to pointer on hover */
+    border-radius: 5px; /* Add border radius */
+}
+
+.delete-button:hover {
+    background-color: #c82333; /* Darker red background color on hover */
+}
+  
+
+.custom-file-label {
+  font-size: 1.25rem;
+  display: block;
+  margin-bottom: 0.5rem;
+  cursor: pointer;
+}
+
+#file {
+  display: block;
+  margin: 0 auto;
+}
+
+#preview {
+  max-width: 100%;
+  height: auto;
+}
